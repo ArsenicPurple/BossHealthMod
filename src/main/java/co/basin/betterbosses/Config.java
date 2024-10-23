@@ -40,6 +40,10 @@ public class Config
             .comment("Whether to use the forge tag \"forge:bosses\" to detect bosses")
             .define("Should Use Forge Tags", true);
 
+    private static final ForgeConfigSpec.BooleanValue SHOULD_DROP_LOOT_BAGS = BUILDER
+            .comment("Whether to drop loot bags filled with boss items or just drop the plain items")
+            .define("Should Drop Loot Bags", true);
+
     private static final ForgeConfigSpec.ConfigValue<List<? extends String>> BOSS_NAMES = BUILDER
             .comment("All bosses that should be affected by this mod. Most are usually in the \"forge:bosses\" tag")
             .defineListAllowEmpty("Boss Entities", List.of("minecraft:wither", "minecraft:ender_dragon"), Config::validateBossName);
@@ -52,6 +56,7 @@ public class Config
     public static double flatHealthMultiplier;
     public static int flatDropsMultiplier;
     public static boolean shouldUseForgeTags;
+    public static boolean shouldDropLootBags;
     public static Set<EntityType> bosses;
 
     private static boolean validateBossName(final Object obj)
@@ -68,6 +73,7 @@ public class Config
         flatHealthMultiplier = FLAT_HEALTH_MULTIPLIER.get();
         flatDropsMultiplier = FLAT_DROPS_MULTIPLIER.get();
         shouldUseForgeTags = SHOULD_USE_FORGE_TAGS.get();
+        shouldDropLootBags = SHOULD_DROP_LOOT_BAGS.get();
         bosses = BOSS_NAMES.get().stream()
                 .map(bossName -> ForgeRegistries.ENTITY_TYPES.getValue(new ResourceLocation(bossName)))
                 .collect(Collectors.toSet());
