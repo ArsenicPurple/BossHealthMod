@@ -13,6 +13,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.EnderpearlItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -52,15 +53,19 @@ public class LootBagItem extends Item {
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
-        CompoundTag tag = player.getItemInHand(hand).getOrCreateTag();
+        ItemStack itemStack = player.getItemInHand(hand);
+        CompoundTag tag = itemStack.getOrCreateTag();
         ListTag list = (ListTag) tag.get("inventory");
-        if (list != null) {
-            for (int i = 0; i < list.size(); i++) {
-                player.addItem(ItemStack.of(list.getCompound(i)));
-            }
+        if (list == null) { return InteractionResultHolder.fail(itemStack); }
+
+        for (int i = 0; i < list.size(); i++) {
+            player.getInventory().placeItemBackInInventory(ItemStack.of(list.getCompound(i)));
         }
 
-        player.getItemInHand(hand).shrink(1);
-        return InteractionResultHolder.success(player.getItemInHand(hand));
+        if (!player.getAbilities().instabuild) {
+            itemStack.shrink(1);
+        }
+
+        return InteractionResultHolder.sidedSuccess(itemStack, level.isClientSide());
     }
 }
