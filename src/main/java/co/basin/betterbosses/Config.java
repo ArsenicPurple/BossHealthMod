@@ -1,6 +1,7 @@
 package co.basin.betterbosses;
 
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.EntityType;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -8,8 +9,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
 import net.minecraftforge.registries.ForgeRegistries;
 
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 @Mod.EventBusSubscriber(modid = MultiplayerBosses.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class Config
@@ -46,7 +46,40 @@ public class Config
 
     private static final ForgeConfigSpec.ConfigValue<List<? extends String>> BOSS_NAMES = BUILDER
             .comment("All bosses that should be affected by this mod. Most are usually in the \"forge:bosses\" tag")
-            .defineListAllowEmpty("Boss Entities", List.of("minecraft:wither", "minecraft:ender_dragon"), Config::validateBossName);
+            .define("Boss Entities", List.of(
+                    "minecraft:wither",
+                    "minecraft:ender_dragon",
+                    "cataclysm:ancient_remnant",
+                    "cataclysm:ignis",
+                    "cataclysm:maledictus",
+                    "cataclysm:ender_golem",
+                    "cataclysm:ender_guardian",
+                    "cataclysm:the_leviathan",
+                    "cataclysm:the_harbinger",
+                    "cataclysm:netherite_monstrosity",
+                    "bosses_of_mass_destruction:void_blossom",
+                    "bosses_of_mass_destruction:gauntlet",
+                    "bosses_of_mass_destruction:lich",
+                    "bosses_of_mass_destruction:obsidilith"
+            ));
+
+    private static final ForgeConfigSpec.ConfigValue<List<? extends List<? extends String>>> LOOT_BAG_TINTS = BUILDER
+            .comment("Tint colors used for loot bags dropped from bosses. Uses minecrafts integer encoded rgb format. Use -1 for no tint")
+            .define("Loot Bag Tints", List.of(
+                    List.of("minecraft:wither", "7561558", "13882367"),
+                    List.of("minecraft:ender_dragon", "2171169", "9830655"),
+                    List.of("cataclysm:ancient_remnant", "15789718", "16760084"),
+                    List.of("cataclysm:ignis", "5384240", "4766957"),
+                    List.of("cataclysm:maledictus", "10387251", "2220943"),
+                    List.of("cataclysm:ender_golem", "2363210", "7217407"),
+                    List.of("cataclysm:ender_guardian", "12905869", "1049638"),
+                    List.of("cataclysm:the_leviathan", "1050911", "6690047"),
+                    List.of("cataclysm:the_harbinger", "13617352", "12523030"),
+                    List.of("cataclysm:netherite_monstrosity", "3092275", "7995392"),
+                    List.of("bosses_of_mass_destruction:void_blossom", "2511372", "4653074"),
+                    List.of("bosses_of_mass_destruction:lich", "2700357", "6984916"),
+                    List.of("bosses_of_mass_destruction:obsidilith", "328201", "3089731")
+            ));
 
     static final ForgeConfigSpec SPEC = BUILDER.build();
 
@@ -57,12 +90,9 @@ public class Config
     public static int flatDropsMultiplier;
     public static boolean shouldUseForgeTags;
     public static boolean shouldDropLootBags;
-    public static Set<EntityType> bosses;
+    public static List<EntityType<?>> bosses;
 
-    private static boolean validateBossName(final Object obj)
-    {
-        return obj instanceof final String bossName && ForgeRegistries.ENTITY_TYPES.containsKey(new ResourceLocation(bossName));
-    }
+    public static Map<EntityType<?>, Tuple<Integer, Integer>> lootBagTints;
 
     @SubscribeEvent
     static void onLoad(final ModConfigEvent event)
@@ -75,7 +105,14 @@ public class Config
         shouldUseForgeTags = SHOULD_USE_FORGE_TAGS.get();
         shouldDropLootBags = SHOULD_DROP_LOOT_BAGS.get();
         bosses = BOSS_NAMES.get().stream()
+                .filter(bossName -> ForgeRegistries.ENTITY_TYPES.containsKey(new ResourceLocation(bossName)))
                 .map(bossName -> ForgeRegistries.ENTITY_TYPES.getValue(new ResourceLocation(bossName)))
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
+        lootBagTints = LOOT_BAG_TINTS.get().stream()
+                .filter((list) -> ForgeRegistries.ENTITY_TYPES.containsKey(new ResourceLocation(list.get(0))))
+                .collect(Collectors.toMap(
+                        (list) -> ForgeRegistries.ENTITY_TYPES.getValue(new ResourceLocation(list.get(0))),
+                        (list) -> new Tuple<>(Integer.parseInt(list.get(1)), Integer.parseInt(list.get(2)))
+                ));
     }
 }

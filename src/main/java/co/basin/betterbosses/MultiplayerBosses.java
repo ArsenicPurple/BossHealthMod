@@ -1,21 +1,18 @@
 package co.basin.betterbosses;
 
-import co.basin.betterbosses.Item.LootBagItem;
-import co.basin.betterbosses.Item.ModItems;
+import co.basin.betterbosses.item.LootBagItem;
+import co.basin.betterbosses.item.ModItems;
 import com.mojang.logging.LogUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.storage.loot.LootParams;
@@ -26,14 +23,12 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingDropsEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
-import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.slf4j.Logger;
 
 @Mod(MultiplayerBosses.MODID)
@@ -66,7 +61,7 @@ public class MultiplayerBosses
         if (!isBoss(livingEntity)) { return; }
         AttributeInstance maxHealthAttribute = livingEntity.getAttribute(Attributes.MAX_HEALTH);
         if (maxHealthAttribute == null) {
-            LOGGER.error(event.getEntity().getName() + " has no max health attribute, skipping entity");
+            LOGGER.error("{} has no max health attribute, skipping entity", event.getEntity().getName());
             return;
         }
 
@@ -89,31 +84,20 @@ public class MultiplayerBosses
         if (playerCount <= 1) { return; }
         event.setCanceled(true);
         ServerLevel serverLevel = (ServerLevel) event.getEntity().level();
-        for (int i = 0; i < playerCount - 1; i++) {
+        for (int i = 0; i < playerCount; i++) {
             if (Config.shouldDropLootBags) {
-                createLootBag(event.getEntity(), event.getSource(), serverLevel);
+                createLootBag(event.getEntity());
             } else {
                 createLoot(event.getEntity(), event.getSource(), serverLevel);
             }
         }
     }
 
-    private void createLootBag(LivingEntity livingEntity, DamageSource damageSource, ServerLevel serverLevel) {
-        if (livingEntity instanceof WitherBoss) {
-            ItemStack stack = new ItemStack(ModItems.LOOTBAGITEM.get());
-            LootBagItem.setBoss(stack, livingEntity);
-            LootBagItem.setItem(stack, Items.NETHER_STAR);
-            ItemEntity itementity = livingEntity.spawnAtLocation(stack);
-            if (itementity != null) { itementity.setExtendedLifetime(); }
-            return;
-        }
-
-        ResourceLocation resourcelocation = livingEntity.getLootTable();
-        LootTable loottable = serverLevel.getServer().getLootData().getLootTable(resourcelocation);
-        ItemStack stack = new ItemStack(ModItems.LOOTBAGITEM.get());
+    private void createLootBag(LivingEntity livingEntity) {
+        ItemStack stack = new ItemStack(ModItems.LOOTBAG.get());
         LootBagItem.setBoss(stack, livingEntity);
-        LootBagItem.setItems(stack, loottable.getRandomItems(createLootParameters(livingEntity, damageSource, serverLevel), livingEntity.getLootTableSeed()));
-        livingEntity.spawnAtLocation(stack);
+        ItemEntity itementity = livingEntity.spawnAtLocation(stack);
+        if (itementity != null) { itementity.setExtendedLifetime(); }
     }
 
     private static void createLoot(LivingEntity livingEntity, DamageSource damageSource, ServerLevel serverLevel) {
@@ -140,12 +124,10 @@ public class MultiplayerBosses
 
     private static boolean isBoss(LivingEntity entity) {
         if (Config.shouldUseForgeTags && entity.getTags().contains("forge:bosses")) { return true; }
-        for (EntityType entityType : Config.bosses) {
-            if (entity.getType().equals(entityType)) {
-                return true;
-            }
-        }
+        return Config.bosses.contains(entity.getType());
+    }
 
-        return false;
+    public static void logInfo(String info) {
+        LOGGER.info(info);
     }
 }
