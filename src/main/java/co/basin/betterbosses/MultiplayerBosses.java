@@ -14,6 +14,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Creeper;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.storage.loot.LootParams;
@@ -64,7 +65,7 @@ public class MultiplayerBosses
         if (Config.useProximityScaling) {
             Vec3 entityPosition = livingEntity.position();
             AABB range = new AABB(entityPosition.x - Config.proximityScalingRange, entityPosition.y - Config.proximityScalingRange, entityPosition.z - Config.proximityScalingRange, entityPosition.x + Config.proximityScalingRange, entityPosition.y + Config.proximityScalingRange, entityPosition.z + Config.proximityScalingRange);
-            playerCount = event.getLevel().getEntities(livingEntity, range, entity -> entity instanceof Creeper).stream()
+            playerCount = event.getLevel().getEntities(livingEntity, range, entity -> entity instanceof Player).stream()
                     .filter(entity -> entityPosition.distanceTo(entity.position()) <= Config.proximityScalingRange)
                     .collect(Collectors.toSet())
                     .size();
