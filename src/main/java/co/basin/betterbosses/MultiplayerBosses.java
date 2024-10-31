@@ -3,7 +3,6 @@ package co.basin.betterbosses;
 import co.basin.betterbosses.item.LootBagItem;
 import co.basin.betterbosses.item.ModItems;
 import com.mojang.logging.LogUtils;
-import net.minecraft.advancements.critereon.EntityPredicate;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -14,7 +13,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.storage.loot.LootParams;
@@ -22,6 +21,7 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingDropsEvent;
@@ -33,6 +33,8 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
+
+import java.util.stream.Collectors;
 
 @Mod(MultiplayerBosses.MODID)
 public class MultiplayerBosses
@@ -57,13 +59,20 @@ public class MultiplayerBosses
     public void onLivingSpawn(EntityJoinLevelEvent event) {
         if (!Config.shouldScaleBossHealth) { return; }
         if (!(event.getEntity() instanceof LivingEntity livingEntity)) { return; }
+        if (!isBoss(livingEntity)) { return; }
         double playerCount = event.getLevel().players().size();
+        if (Config.useProximityScaling) {
+            Vec3 entityPosition = livingEntity.position();
+            AABB range = new AABB(entityPosition.x - Config.proximityScalingRange, entityPosition.y - Config.proximityScalingRange, entityPosition.z - Config.proximityScalingRange, entityPosition.x + Config.proximityScalingRange, entityPosition.y + Config.proximityScalingRange, entityPosition.z + Config.proximityScalingRange);
+            playerCount = event.getLevel().getEntities(livingEntity, range, entity -> entity instanceof Creeper).stream()
+                    .filter(entity -> entityPosition.distanceTo(entity.position()) <= Config.proximityScalingRange)
+                    .collect(Collectors.toSet())
+                    .size();
+            livingEntity.getPersistentData().putInt("lhmulti", (int) playerCount);
+        }
         if (Config.flatHealthMultiplier > 0) { playerCount = Config.flatHealthMultiplier; }
         if (playerCount <= 1) { return; }
         double scalar = (playerCount - 1) * Config.multiplierPerPlayer;
-        if (!isBoss(livingEntity)) { return; }
-
-        //event.getLevel().getEntities(livingEntity, new AABB(livingEntity.blockPosition()), entity -> entity instanceof Player);
 
         AttributeInstance maxHealthAttribute = livingEntity.getAttribute(Attributes.MAX_HEALTH);
         if (maxHealthAttribute == null) {
@@ -86,6 +95,9 @@ public class MultiplayerBosses
         MinecraftServer server;
         if ((server = event.getEntity().getServer()) == null) { return; }
         int playerCount = server.getPlayerCount();
+        if (Config.useProximityScaling) {
+            playerCount = event.getEntity().getPersistentData().getInt("lhmulti");
+        }
         if (Config.flatDropsMultiplier > 0) { playerCount = Config.flatDropsMultiplier; }
         if (playerCount <= 1) { return; }
         event.setCanceled(true);

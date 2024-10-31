@@ -44,6 +44,14 @@ public class Config
             .comment("Whether to drop loot bags filled with boss items or just drop the plain items")
             .define("Should Drop Loot Bags", true);
 
+    private static final ForgeConfigSpec.BooleanValue USE_PROXIMITY_SCALING = BUILDER
+            .comment("Whether to scale health and loot off of the number of players in the configured range or use the global player count")
+            .define("Use Proximity Scaling", true);
+
+    private static final ForgeConfigSpec.IntValue PROXIMITY_SCALING_RANGE = BUILDER
+            .comment("How far from a boss spawn position to detect players")
+            .defineInRange("Proximity Scaling Range", 40, 0, Integer.MAX_VALUE);
+
     private static final ForgeConfigSpec.ConfigValue<List<? extends String>> BOSS_NAMES = BUILDER
             .comment("All bosses that should be affected by this mod. Most are usually in the \"forge:bosses\" tag")
             .defineList("Boss Entities", List.of(
@@ -98,6 +106,8 @@ public class Config
     public static int flatDropsMultiplier;
     public static boolean shouldUseForgeTags;
     public static boolean shouldDropLootBags;
+    public static boolean useProximityScaling;
+    public static int proximityScalingRange;
     public static List<EntityType<?>> bosses;
 
     public static Map<EntityType<?>, Tuple<Integer, Integer>> lootBagTints;
@@ -112,6 +122,9 @@ public class Config
         flatDropsMultiplier = FLAT_DROPS_MULTIPLIER.get();
         shouldUseForgeTags = SHOULD_USE_FORGE_TAGS.get();
         shouldDropLootBags = SHOULD_DROP_LOOT_BAGS.get();
+        useProximityScaling = USE_PROXIMITY_SCALING.get();
+        proximityScalingRange = PROXIMITY_SCALING_RANGE.get();
+
         bosses = BOSS_NAMES.get().stream()
                 .filter(bossName -> ForgeRegistries.ENTITY_TYPES.containsKey(new ResourceLocation(bossName)))
                 .map(bossName -> ForgeRegistries.ENTITY_TYPES.getValue(new ResourceLocation(bossName)))
