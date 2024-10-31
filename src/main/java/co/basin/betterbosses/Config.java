@@ -46,7 +46,7 @@ public class Config
 
     private static final ForgeConfigSpec.ConfigValue<List<? extends String>> BOSS_NAMES = BUILDER
             .comment("All bosses that should be affected by this mod. Most are usually in the \"forge:bosses\" tag")
-            .define("Boss Entities", List.of(
+            .defineList("Boss Entities", List.of(
                     "minecraft:wither",
                     "minecraft:ender_dragon",
                     "cataclysm:ancient_remnant",
@@ -61,11 +61,11 @@ public class Config
                     "bosses_of_mass_destruction:gauntlet",
                     "bosses_of_mass_destruction:lich",
                     "bosses_of_mass_destruction:obsidilith"
-            ));
+            ), Config::validateString);
 
     private static final ForgeConfigSpec.ConfigValue<List<? extends List<? extends String>>> LOOT_BAG_TINTS = BUILDER
             .comment("Tint colors used for loot bags dropped from bosses. Uses minecrafts integer encoded rgb format. Use -1 for no tint")
-            .define("Loot Bag Tints", List.of(
+            .defineList("Loot Bag Tints", List.of(
                     List.of("minecraft:wither", "7561558", "13882367"),
                     List.of("minecraft:ender_dragon", "2171169", "9830655"),
                     List.of("cataclysm:ancient_remnant", "15789718", "16760084"),
@@ -79,7 +79,15 @@ public class Config
                     List.of("bosses_of_mass_destruction:void_blossom", "2511372", "4653074"),
                     List.of("bosses_of_mass_destruction:lich", "2700357", "6984916"),
                     List.of("bosses_of_mass_destruction:obsidilith", "328201", "3089731")
-            ));
+            ), Config::validateLootbagTints);
+
+    private static boolean validateLootbagTints(final Object obj) {
+        return obj instanceof final List<?> list && list.size() == 3;
+    }
+
+    private static boolean validateString(final Object obj) {
+        return obj instanceof String;
+    }
 
     static final ForgeConfigSpec SPEC = BUILDER.build();
 

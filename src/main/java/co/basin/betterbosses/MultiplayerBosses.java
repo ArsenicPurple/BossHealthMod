@@ -3,6 +3,7 @@ package co.basin.betterbosses;
 import co.basin.betterbosses.item.LootBagItem;
 import co.basin.betterbosses.item.ModItems;
 import com.mojang.logging.LogUtils;
+import net.minecraft.advancements.critereon.EntityPredicate;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -13,12 +14,14 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingDropsEvent;
@@ -54,11 +57,14 @@ public class MultiplayerBosses
     public void onLivingSpawn(EntityJoinLevelEvent event) {
         if (!Config.shouldScaleBossHealth) { return; }
         if (!(event.getEntity() instanceof LivingEntity livingEntity)) { return; }
-        int playerCount = event.getLevel().players().size();
-        if (playerCount <= 1 && Config.flatHealthMultiplier == 0) { return; }
-        double scalar = playerCount - 1 * Config.multiplierPerPlayer;
-        if (Config.flatHealthMultiplier > 0) { scalar = Config.flatHealthMultiplier - 1; }
+        double playerCount = event.getLevel().players().size();
+        if (Config.flatHealthMultiplier > 0) { playerCount = Config.flatHealthMultiplier; }
+        if (playerCount <= 1) { return; }
+        double scalar = (playerCount - 1) * Config.multiplierPerPlayer;
         if (!isBoss(livingEntity)) { return; }
+
+        //event.getLevel().getEntities(livingEntity, new AABB(livingEntity.blockPosition()), entity -> entity instanceof Player);
+
         AttributeInstance maxHealthAttribute = livingEntity.getAttribute(Attributes.MAX_HEALTH);
         if (maxHealthAttribute == null) {
             LOGGER.error("{} has no max health attribute, skipping entity", event.getEntity().getName());
