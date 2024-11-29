@@ -42,6 +42,9 @@ public class MultiplayerBosses
 {
     public static final String MODID = "multiplayerbosses";
     private static final Logger LOGGER = LogUtils.getLogger();
+
+    private static final String MULTIPLIER_TAG_KEY = "lhmulti";
+
     public MultiplayerBosses()
     {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -69,7 +72,7 @@ public class MultiplayerBosses
                     .filter(entity -> entityPosition.distanceTo(entity.position()) <= Config.proximityScalingRange)
                     .collect(Collectors.toSet())
                     .size();
-            livingEntity.getPersistentData().putInt("lhmulti", (int) playerCount);
+            livingEntity.getPersistentData().putInt(MULTIPLIER_TAG_KEY, (int) playerCount);
         }
         if (Config.flatHealthMultiplier > 0) { playerCount = Config.flatHealthMultiplier; }
         if (playerCount <= 1) { return; }
@@ -97,7 +100,7 @@ public class MultiplayerBosses
         if ((server = event.getEntity().getServer()) == null) { return; }
         int playerCount = server.getPlayerCount();
         if (Config.useProximityScaling) {
-            playerCount = event.getEntity().getPersistentData().getInt("lhmulti");
+            playerCount = event.getEntity().getPersistentData().getInt(MULTIPLIER_TAG_KEY);
         }
         if (Config.flatDropsMultiplier > 0) { playerCount = Config.flatDropsMultiplier; }
         if (playerCount <= 1) { return; }

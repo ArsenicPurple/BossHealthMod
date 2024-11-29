@@ -2,6 +2,7 @@ package co.basin.betterbosses.item;
 
 import co.basin.betterbosses.Config;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -9,6 +10,10 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageSources;
+import net.minecraft.world.damagesource.DamageType;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
@@ -17,6 +22,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -46,7 +52,7 @@ public class LootBagItem extends Item {
             LivingEntity livingEntity = (LivingEntity) entityType.create(level);
             ServerLevel serverLevel = (ServerLevel) level;
             Inventory inventory = player.getInventory();
-            for (ItemStack lootStack : createLoot(livingEntity, serverLevel)) {
+            for (ItemStack lootStack : createLoot(player, livingEntity, serverLevel)) {
                 inventory.placeItemBackInInventory(lootStack);
             }
         }
@@ -58,11 +64,14 @@ public class LootBagItem extends Item {
         return InteractionResultHolder.sidedSuccess(itemStack, level.isClientSide());
     }
 
-    private ObjectArrayList<ItemStack> createLoot(LivingEntity livingEntity, ServerLevel serverLevel) {
+    private ObjectArrayList<ItemStack> createLoot(Player player, LivingEntity livingEntity, ServerLevel serverLevel) {
         if (livingEntity instanceof WitherBoss) { return ObjectArrayList.of(new ItemStack(Items.NETHER_STAR)); }
         ResourceLocation resourcelocation = livingEntity.getLootTable();
         LootTable loottable = serverLevel.getServer().getLootData().getLootTable(resourcelocation);
-        LootParams.Builder lootparams$builder = new LootParams.Builder(serverLevel).withParameter(LootContextParams.THIS_ENTITY, livingEntity);
+        LootParams.Builder lootparams$builder = new LootParams.Builder(serverLevel)
+                .withParameter(LootContextParams.THIS_ENTITY, livingEntity)
+                .withParameter(LootContextParams.DAMAGE_SOURCE, serverLevel.damageSources().generic())
+                .withParameter(LootContextParams.ORIGIN, player.position());
         return loottable.getRandomItems(lootparams$builder.create(LootContextParamSets.ENTITY), livingEntity.getLootTableSeed());
     }
 

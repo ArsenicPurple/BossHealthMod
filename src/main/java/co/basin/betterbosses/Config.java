@@ -24,7 +24,7 @@ public class Config
             .comment("If boss drops should be rolled an additional time per player")
             .define("Should Scale Boss Drops", true);
 
-    private static final ForgeConfigSpec.DoubleValue MULTIPLIER_PER_PLAYER = BUILDER
+    private static final ForgeConfigSpec.DoubleValue HEALTH_MULTIPLIER_PER_PLAYER = BUILDER
             .comment("The amount to scale boss health per player after the first")
             .defineInRange("Health Multiplier Per Player", 1.0, 0.0, Double.MAX_VALUE);
 
@@ -50,7 +50,7 @@ public class Config
 
     private static final ForgeConfigSpec.IntValue PROXIMITY_SCALING_RANGE = BUILDER
             .comment("How far from a boss spawn position to detect players")
-            .defineInRange("Proximity Scaling Range", 40, 0, Integer.MAX_VALUE);
+            .defineInRange("Proximity Scaling Range", 100, 0, Integer.MAX_VALUE);
 
     private static final ForgeConfigSpec.ConfigValue<List<? extends String>> BOSS_NAMES = BUILDER
             .comment("All bosses that should be affected by this mod. Most are usually in the \"forge:bosses\" tag")
@@ -116,7 +116,7 @@ public class Config
     static void onLoad(final ModConfigEvent event)
     {
         shouldScaleBossHealth = SHOULD_SCALE_BOSS_HEALTH.get();
-        multiplierPerPlayer = MULTIPLIER_PER_PLAYER.get();
+        multiplierPerPlayer = HEALTH_MULTIPLIER_PER_PLAYER.get();
         shouldScaleBossDrops = SHOULD_SCALE_BOSS_DROPS.get();
         flatHealthMultiplier = FLAT_HEALTH_MULTIPLIER.get();
         flatDropsMultiplier = FLAT_DROPS_MULTIPLIER.get();

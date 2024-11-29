@@ -146,8 +146,17 @@ dependencies {
     // The group id is ignored when searching -- in this case, it is "blank"
     // implementation fg.deobf("blank:coolmod-${mc_version}:${coolmod_version}")
 
-     implementation fg.deobf("blank:mobhealthbar-forge-1.20.x:2.3.0")
+    implementation fg.deobf("blank:mobhealthbar-forge-1.20.x:2.3.0")
     implementation fg.deobf("blank:AttributeFix-Forge-1.20.1:21.0.4")
+    implementation fg.deobf("blank:spark:1.10.53-forge")
+
+    implementation fg.deobf("blank:BOMD-Forge-1.20.1:1.1.2")
+    implementation fg.deobf("blank:L_Enders_Cataclysm-1.20.1:2.16")
+    implementation fg.deobf("blank:CerbonsAPI-Forge-1.20.1:1.1.0")
+    implementation fg.deobf("blank:cloth-config:11.1.136-forge")
+    implementation fg.deobf("blank:curios-forge-1.20.1:5.11.0")
+    implementation fg.deobf("blank:geckolib-forge-1.20.1:4.4.9")
+    implementation fg.deobf("blank:lionfishapi:1.9")
 
     // For more info:
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
